@@ -1,9 +1,12 @@
 import React from 'react';
+
 import clock from '../../assets/icons/clock.svg'
 import marker from '../../assets/icons/marker.svg'
 import phone from '../../assets/icons/phone.svg'
 
+
 const InfoCard = () => {
+    
     return (
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 px-12'>
             <div class="card lg:card-side bg-gradient-to-r from-secondary to-primary text-white p-3  shadow-xl">

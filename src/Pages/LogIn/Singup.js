@@ -1,41 +1,69 @@
 import React from 'react';
 import auth from '../../firebase.init';
-import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import { useCreateUserWithEmailAndPassword, useSignInWithGoogle, useUpdateProfile } from 'react-firebase-hooks/auth';
 import { useForm } from "react-hook-form";
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-const Login = () => {
+
+const Singup = () => {
     const [signInWithGoogle, guser, gloading, gerror] = useSignInWithGoogle(auth);
     const { register, formState: { errors }, handleSubmit } = useForm();
     const [
-        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
         user,
         loading,
         error,
-    ] = useSignInWithEmailAndPassword(auth);
-    const navigate = useNavigate();
-    const location = useLocation();
-    let from = location.state?.from?.pathname || "/";
-    if (guser ||user) {
-        navigate(from, { replace: true });
+    ] = useCreateUserWithEmailAndPassword(auth);
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+    const navigate = useNavigate()
+    if (guser || user) {
+        console.log(guser);
     }
-    if (gloading ||loading) {
+    if (gloading || loading || updating) {
         return <p>Loading...</p>
     }
     let singInError;
-    if(gerror||error){
-        singInError= <p className='text-red-500'><small>{error.message}</small></p>
+    if (gerror || error || updateError) {
+        singInError = <p className='text-red-500'><small>{error.message || gerror.message || updateError.message
+        }</small></p>
     }
-    const onSubmit = data => {
+
+    
+    const onSubmit = async data => {
         console.log(data)
-        signInWithEmailAndPassword(data.email,data.password)
+        await createUserWithEmailAndPassword(data.email, data.password)
+        await updateProfile({ displayName: data.name });
+        navigate('/appoinment')
+
     };
     return (
         <div className='flex h-screen justify-center items-center'>
             <div class="card w-96 bg-base-100 shadow-xl">
                 <div class="card-body">
-                    <h2 class="text-center text-2xl font-bold">Login</h2>
+                    <h2 class="text-center text-2xl font-bold">Sing Up</h2>
                     <form onSubmit={handleSubmit(onSubmit)}>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Name</span>
+
+                            </label>
+                            <input
+                                type="name"
+                                placeholder="Your name"
+                                class="input input-bordered w-full max-w-xs"
+                                {...register("name", {
+                                    required: {
+                                        value: true,
+                                        message: 'Name is Required'
+                                    }
+
+                                })}
+                            />
+                            <label class="label">
+                                {errors.name?.type === 'required' && <span className="label-text-alt text-red-500">{errors.name.message}</span>}
+                                {/* {errors.email?.type === 'pattern' && <span className="label-text-alt text-red-500">{errors.email.message}</span>} */}
+                            </label>
+                        </div>
 
                         <div class="form-control w-full max-w-xs">
                             <label class="label">
@@ -88,8 +116,8 @@ const Login = () => {
                             </label>
                         </div>
                         {singInError}
-                        <input className='btn w-full max-w-xs text-white' type="submit" value="Login" />
-                        <p><small>New to doctors portal?<Link className='text-primary' to='/singup'>Create an account</Link></small></p>
+                        <input className='btn w-full max-w-xs text-white' type="submit" value="Sing up" />
+                        <p><small>Already have an account?<Link className='text-primary' to='/login'>Please login</Link></small></p>
                     </form>
                     <div class="divider">OR</div>
                     <button onClick={() => signInWithGoogle()} class="btn">Sing in with Google</button>
@@ -101,4 +129,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Singup;

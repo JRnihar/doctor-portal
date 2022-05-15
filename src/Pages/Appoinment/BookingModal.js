@@ -1,8 +1,12 @@
 import React from "react";
 import { format} from "date-fns";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "../../firebase.init";
 
 const BookingModal = ({ date, tretment, SetTretment}) => {
+  const [user]=useAuthState(auth)
   const{ _id,name,slots}=tretment
+  const formattedDate = format(date, 'PP');
    
 
 const handleSubmit=(e)=>{
@@ -10,7 +14,39 @@ const handleSubmit=(e)=>{
   const slot=e.target.slot.value
   console.log(slot);
   SetTretment(null)
+
+
+  const booking = {
+    treatmentId: _id,
+    treatment: name,
+    date: formattedDate,
+    slot,
+    patient: user.email,
+    patientName: user.displayName,
+    phone: e.target.phone.value
+
+  }
+  fetch('http://localhost:5000/booking', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(booking)
+  })
+    .then(res => res.json())
+    .then(data => {
+    
+      if (data.success) {
+        alert(`Appointment is set, ${formattedDate} at ${slot}`)
+      }
+      else {
+        alert(`Already have and appointment on ${data.booking?.date} at ${data.booking?.slot}`)
+      }
+    });
+  ;
 }
+ 
+
 
   return (
     <div>
@@ -31,8 +67,8 @@ const handleSubmit=(e)=>{
                }
            
               </select>
-              <input type="text" name="name" placeholder="Type your name" class="input input-bordered w-full max-w-xs" />
-              <input type="email" name="email" placeholder="Type your email" class="input input-bordered w-full max-w-xs" />
+              <input type="text" name="name" disabled value={user?.displayName} class="input input-bordered w-full max-w-xs" />
+              <input type="email" name="email" disabled value={user?.email} class="input input-bordered w-full max-w-xs" />
               <input type="number" name="phone" placeholder="Type your phone" class="input input-bordered w-full max-w-xs" />
               <input type="submit" placeholder="Submit" class="btn btn-secondary w-full max-w-xs" />
             </form>
